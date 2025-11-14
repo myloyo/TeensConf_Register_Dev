@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  mail:
+    host: localhost
+    port: 25
+    username: test
+    password: test
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+app:
+  payment:
+    amount: 500.0
+  upload:
+    dir: "./test-uploads"
+  cors:
+    allowed-origins: "http://localhost:3000"
+  email:
+    from: "test@example.com"
+
+yandex:
+  sheets:
+    access-token: "test-token"
+    file-name: "/test-file.xlsx"

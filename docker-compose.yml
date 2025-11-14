@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: teensconf
+      POSTGRES_USER: teensregister
+      POSTGRES_PASSWORD: teens2026reg
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teensregister -d teensconf"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: 
+      context: ./teens_rega_back
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/teensconf
+      SPRING_DATASOURCE_USERNAME: teensregister
+      SPRING_DATASOURCE_PASSWORD: teens2026reg
+      SPRING_PROFILES_ACTIVE: docker
+      YANDEX_SHEETS_ACCESS_TOKEN: ${YANDEX_SHEETS_ACCESS_TOKEN}
+      YANDEX_SHEETS_SPREADSHEET_ID: ${YANDEX_SHEETS_SPREADSHEET_ID}
+      APP_CORS_ALLOWED_ORIGINS: "http://localhost:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./teens_rega_front
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

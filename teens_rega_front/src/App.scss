@@ -1,0 +1,296 @@
+// Conference colors
+$brown-color: #8F7A5F;
+$light-beige: #E1D4B2;
+$dark-gray: #3C3A3F;
+$yellow-accent: #FADD1F;
+$light-gray: #F6F6F6;
+
+// Functional colors
+$primary-color: $brown-color;
+$success-color: #52c41a;
+$error-color: #ff4d4f;
+$warning-color: $yellow-accent;
+$text-color: $dark-gray;
+$border-color: $light-beige;
+$background-color: $light-gray;
+
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin card-shadow {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+// Global styles
+.app {
+  min-height: 100vh;
+  padding: 20px;
+  background: url('/pics/image.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.registration-container {
+  max-width: 800px;
+  margin: 0 auto;
+  
+  .header {
+    text-align: center;
+    padding: 0;
+    
+    .logo {
+      max-width: 60%;
+      margin: 0 auto;
+    }
+  }
+}
+
+// Form styles
+.registration-form {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  @include card-shadow;
+  
+  .form-section {
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    
+    h3 {
+      color: $brown-color;
+      margin-bottom: 24px;
+      font-size: 1.4rem;
+      border-left: 6px solid $primary-color;
+      padding-left: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+  
+  .form-group {
+    flex: 1;
+    
+    .ant-form-item {
+      margin-bottom: 16px;
+    }
+  }
+  
+  .under-18-section {
+    background: #fff8e1;
+    padding: 24px;
+    border-radius: 8px;
+    border-left: 6px solid $warning-color;
+    margin: 20px 0;
+    
+    h4 {
+      color: $text-color;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+  }
+  
+  .consent-section {
+    .consent-text {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 6px;
+      border-left: 6px solid $primary-color;
+      margin-top: 16px;
+      max-height: 200px;
+      overflow-y: auto;
+      
+      p {
+        color: $dark-gray;
+        line-height: 1.6;
+        margin: 0;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+// Payment styles
+.payment-container {
+  background: white;
+  padding: 40px;
+  text-align: center;
+  @include card-shadow;
+  
+  .payment-header {
+    margin-bottom: 30px;
+    
+    h2 {
+      color: $brown-color;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .amount {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: $primary-color;
+    }
+  }
+  
+  .qr-section {
+    margin: 40px 0;
+    padding: 30px;
+    border: 2px dashed $border-color;
+    border-radius: 12px;
+    display: inline-block;
+    
+    .qr-image {
+      max-width: 300px;
+      height: auto;
+      border: 1px solid #eee;
+      border-radius: 8px;
+    }
+    
+    p {
+      margin-top: 16px;
+      color: #666;
+      font-size: 1rem;
+    }
+  }
+  
+  .instructions {
+    text-align: left;
+    background: #f8f9fa;
+    padding: 24px;
+    border-radius: 8px;
+    margin: 30px 0;
+    
+    h4 {
+      color: $text-color;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    
+    ol {
+      margin-left: 20px;
+      
+      li {
+        margin-bottom: 8px;
+        color: #666;
+      }
+    }
+  }
+  
+  .test-note {
+    margin-top: 20px;
+    padding: 16px;
+    background: #fff7e6;
+    border: 1px solid rgba(242,201,76,0.3);
+    border-radius: 6px;
+    
+    p {
+      margin: 0;
+      color: $primary-color;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Success page
+.success-container {
+  background: white;
+  padding: 60px 40px;
+  text-align: center;
+  @include card-shadow;
+  
+  .success-icon {
+    font-size: 4rem;
+    color: $warning-color;
+    margin-bottom: 24px;
+  }
+  
+  h2 {
+    color: $warning-color;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  
+  p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .app {
+    padding: 10px;
+  }
+  
+  .registration-container {
+    .header {
+      padding: 30px 15px;
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
+  
+  .registration-form {
+    padding: 24px;
+  }
+  
+  .payment-container {
+    padding: 24px;
+  }
+}
+
+// Antd overrides to match brand
+.ant-btn-primary {
+  background: $primary-color !important;
+  border-color: $primary-color !important;
+  box-shadow: none !important;
+}
+
+.ant-card {
+  border-radius: 10px;
+  border: none;
+}
+
+.ant-input, .ant-picker, .ant-select-selector, .ant-input-textarea {
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.ant-form-item-label > label {
+  color: $text-color;
+  font-weight: 600;
+}
