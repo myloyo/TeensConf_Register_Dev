@@ -1,3 +1,4 @@
+// [file name]: index.ts
 export interface RegistrationRequest {
   firstName: string;
   lastName: string;
@@ -18,14 +19,21 @@ export interface RegistrationRequest {
 }
 
 export interface RegistrationResponse {
-  registrationId: BigInteger;
-  qrCodeUrl: string;
-  amount: BigInteger;
+  registrationId: number;
   message: string;
 }
 
-export interface PaymentConfirmationResponse {
+export interface PaymentCompletionRequest {
+  paymentReference?: string;
+  receiptFile?: File;
+}
+
+export interface PaymentCompletionResponse {
+  success: boolean;
+  receiptId?: number;
+  verified: boolean;
   message: string;
+  error?: string;
 }
 
 export interface ApiError {

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение оплаты регистрации</title>
+    <style>
+        body {
+            font-family: Montseratt, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-code img {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+        .info {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+<h2>Подтверждение оплаты регистрации на конференцию ТИНС</h2>
+
+<p>Привет, <span th:text="${fullName}"></span>!</p>
+
+<p>Твоя регистрация на подростковую конференцию подтверждена!</p>
+<p>Благодарим тебя за внесение пожертвования!</p>
+
+<div class="info">
+    <h3>Информация о регистрации:</h3>
+    <p><strong>Имя:</strong> <span th:text="${registration.firstName}"></span></p>
+    <p><strong>Фамилия:</strong> <span th:text="${registration.lastName}"></span></p>
+    <p><strong>Телефон:</strong> <span th:text="${registration.phone}"></span></p>
+    <p><strong>Город:</strong> <span th:text="${registration.city}"></span></p>
+    <p><strong>Роль:</strong> <span th:text="${registration.role}"></span></p>
+    <p><strong>Расселение:</strong>
+        <span th:if="${registration.needAccommodation}">Да</span>
+        <span th:unless="${registration.needAccommodation}">Нет</span>
+    </p>
+</div>
+
+<div class="qr-code">
+    <h3>Ваш QR-код для входа:</h3>
+    <p>QR-код отправлен в качестве приложения к этому письму.</p>
+    <p><small>Покажите этот QR-код на стойке регистрации</small></p>
+</div>
+
+<p><strong>Не забудь показать QR-код на стойке регистрации на самой конференции 4 января!</strong></p>
+
+<p>С уважением,<br>Команда конференции ТИНС</p>
+</body>
+</html>

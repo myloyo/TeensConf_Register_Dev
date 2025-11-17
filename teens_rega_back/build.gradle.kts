@@ -34,9 +34,9 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
     implementation("me.paulschwarz:spring-dotenv:4.0.0")
 
-    implementation("org.apache.poi:poi:5.2.3")       // для работы с XLS
-    implementation("org.apache.poi:poi-ooxml:5.2.3") // для работы с XLSX
-    implementation("org.apache.commons:commons-collections4:4.4") // иногда требуется POI
+    implementation("org.apache.poi:poi:5.2.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
+    implementation("org.apache.commons:commons-collections4:4.4")
 
     // LOMBOK
     compileOnly("org.projectlombok:lombok:1.18.30")
@@ -55,13 +55,8 @@ dependencies {
     implementation("com.google.zxing:core:3.5.1")
     implementation("com.google.zxing:javase:3.5.1")
 
-    //SSL configuration
-    implementation("org.apache.httpcomponents:httpclient:4.5.14")
-
     implementation("org.flywaydb:flyway-core")
-
-    //Сбербанк библиотека
-    implementation(files("libs/java-sdk-2.0.3.jar"))
+    implementation("org.apache.pdfbox:pdfbox:2.0.29")
 
 }
 

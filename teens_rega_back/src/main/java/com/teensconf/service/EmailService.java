@@ -4,6 +4,7 @@ import com.teensconf.entity.Registration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import javax.mail.internet.MimeMessage;
+import java.util.Base64;
 
 @Service
 @Slf4j
@@ -18,6 +20,9 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private QrCodeService qrCodeService;
 
     @Value("${app.email.from}")
     private String fromEmail;
@@ -59,6 +64,13 @@ public class EmailService {
 
             String htmlContent = buildPaymentSuccessEmail(registration);
             helper.setText(htmlContent, true);
+
+            // Генерируем QR код и добавляем как вложение
+            byte[] qrCodeBytes = qrCodeService.generateRegistrationQrCodeBytes(registration);
+            if (qrCodeBytes != null) {
+                helper.addAttachment("qr_code_" + registration.getId() + ".png", 
+                    new ByteArrayResource(qrCodeBytes), "image/png");
+            }
 
             mailSender.send(message);
             log.info("Уведомление об оплате отправлено на: {}", registration.getEmail());

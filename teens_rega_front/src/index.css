@@ -1,3 +1,6 @@
+/* [file name]: index.css */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
 html, body, #root {
   margin: 0;
   font-family: 'Montserrat', sans-serif !important;
@@ -5,6 +8,26 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
 code {
   font-family: 'Montserrat', sans-serif;
+}
+
+/* Ensure Ant Design components use Montserrat */
+.ant-typography,
+.ant-btn,
+.ant-input,
+.ant-form-item-label,
+.ant-steps-item-title,
+.ant-steps-item-description,
+.ant-result-title,
+.ant-result-subtitle,
+.ant-alert-message,
+.ant-alert-description,
+.ant-upload,
+.ant-menu {
+  font-family: 'Montserrat', sans-serif !important;
 }
