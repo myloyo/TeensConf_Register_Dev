@@ -40,6 +40,12 @@ public class PaymentReceipt {
     @Column(name = "payment_created_at")
     private LocalDateTime paymentCreatedAt;
 
+    @Column(name = "yandex_disk_url")
+    private String yandexDiskUrl;
+
+    @Column(name = "yandex_disk_uploaded")
+    private Boolean yandexDiskUploaded = false;
+
     @PrePersist
     protected void onCreate() {
         paymentCreatedAt = LocalDateTime.now();

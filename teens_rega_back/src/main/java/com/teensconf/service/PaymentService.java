@@ -89,7 +89,7 @@ public class PaymentService {
             Files.createDirectories(Paths.get(uploadDir));
             Files.write(filePath, fileBytes);
 
-            receipt.setFileName(originalFileName); // Сохраняем оригинальное имя
+            receipt.setFileName(originalFileName);
             receipt.setFilePath(filePath.toString());
             receipt.setFileSize(file.getSize());
 

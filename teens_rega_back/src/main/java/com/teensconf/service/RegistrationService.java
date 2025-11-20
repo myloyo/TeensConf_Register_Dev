@@ -22,9 +22,6 @@ public class RegistrationService {
     private final YandexSheetsService yandexSheetsService;
     private final EmailService emailService;
 
-    @Value("${app.payment.amount}")
-    private Double paymentAmount;
-
     public Registration createRegistration(@Valid RegistrationRequest request) {
         Registration registration = new Registration();
         registration.setFirstName(request.getFirstName());

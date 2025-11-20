@@ -54,7 +54,7 @@ public class RegistrationRequest {
 
     @AssertTrue(message = "Необходимо согласие для несовершеннолетних")
     public boolean isConsentUnder14Valid() {
-        if (isUnder18()) {
+        if (isUnder14()) {
             return consentUnder14 != null && consentUnder14;
         }
         return true;
@@ -88,6 +88,25 @@ public class RegistrationRequest {
 
             LocalDate birthDate = LocalDate.of(year, month, day);
             return birthDate.plusYears(18).isAfter(LocalDate.now());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean isUnder14() {
+        if (birthDate == null || !birthDate.matches("^\\d{2}/\\d{2}/\\d{4}$")) {
+            return false;
+        }
+        try {
+            String[] parts = birthDate.split("/");
+            int day = Integer.parseInt(parts[0]);
+            int month = Integer.parseInt(parts[1]);
+            int year = Integer.parseInt(parts[2]);
+
+            LocalDate birthDate = LocalDate.of(year, month, day);
+            LocalDate fourteenYearsAgo = LocalDate.now().minusYears(14);
+
+            return birthDate.isAfter(fourteenYearsAgo);
         } catch (Exception e) {
             return false;
         }

@@ -2,60 +2,131 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Подтверждение оплаты регистрации</title>
+    <title>Подтверждение регистрации</title>
     <style>
         body {
-            font-family: Montseratt, sans-serif;
+            font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .qr-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
         }
         .qr-code {
-            text-align: center;
+            margin: 20px auto;
+            display: block;
+            max-width: 300px;
+            height: auto;
+        }
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
             margin: 20px 0;
         }
-        .qr-code img {
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            background: white;
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
         }
-        .info {
-            background: #f9f9f9;
+        .highlight {
+            background: #fff3cd;
             padding: 15px;
             border-radius: 5px;
-            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-<h2>Подтверждение оплаты регистрации на конференцию ТИНС</h2>
+<div class="header">
+    <h1 style="color: #2c3e50; margin: 0;">Подтверждение регистрации</h1>
+    <p style="color: #7f8c8d; margin: 10px 0 0 0;">Подростковая конференция ТИНС</p>
+</div>
 
-<p>Привет, <span th:text="${fullName}"></span>!</p>
+<p>Привет, <strong th:text="${fullName}"></strong>!</p>
 
-<p>Твоя регистрация на подростковую конференцию подтверждена!</p>
-<p>Благодарим тебя за внесение пожертвования!</p>
+<p>Твоя регистрация на подростковую конференцию ТИНС успешно подтверждена! 🎊</p>
+<p>Благодарим тебя за внесение добровольного пожертвования!</p>
 
-<div class="info">
-    <h3>Информация о регистрации:</h3>
-    <p><strong>Имя:</strong> <span th:text="${registration.firstName}"></span></p>
-    <p><strong>Фамилия:</strong> <span th:text="${registration.lastName}"></span></p>
-    <p><strong>Телефон:</strong> <span th:text="${registration.phone}"></span></p>
-    <p><strong>Город:</strong> <span th:text="${registration.city}"></span></p>
-    <p><strong>Роль:</strong> <span th:text="${registration.role}"></span></p>
-    <p><strong>Расселение:</strong>
-        <span th:if="${registration.needAccommodation}">Да</span>
-        <span th:unless="${registration.needAccommodation}">Нет</span>
+<div class="highlight">
+    <h3 style="margin: 0 0 10px 0;">Дата проведения:</h3>
+    <p style="margin: 0; font-size: 18px; font-weight: bold;">4 января 2026 года</p>
+</div>
+
+<div class="info-card">
+    <h3 style="margin-top: 0;">Информация о регистрации:</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;"><strong>Имя:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;" th:text="${registration.firstName}"></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;"><strong>Фамилия:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;" th:text="${registration.lastName}"></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;"><strong>Телефон:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;" th:text="${registration.phone}"></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;"><strong>Город:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;" th:text="${registration.city}"></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;"><strong>Роль:</strong></td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;" th:text="${registration.role}"></td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0;"><strong>Расселение:</strong></td>
+            <td style="padding: 8px 0;">
+                <span th:if="${registration.needAccommodation}" style="color: #28a745;"> Да</span>
+                <span th:unless="${registration.needAccommodation}" style="color: #6c757d;"> Нет</span>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="qr-section">
+    <h3 style="color: #2c3e50;">📱 Ваш QR-код для входа</h3>
+    <p>Сохраните этот QR-код и покажите его на стойке регистрации:</p>
+
+    <img src="cid:qrCode" alt="QR Code для регистрации" class="qr-code"
+         style="border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: white;"/>
+
+    <p style="color: #6c757d; font-size: 14px; margin-top: 15px;">
+        <strong>⚠️ Важно:</strong> QR-код является вашим пропуском на конференцию
     </p>
 </div>
 
-<div class="qr-code">
-    <h3>Ваш QR-код для входа:</h3>
-    <p>QR-код отправлен в качестве приложения к этому письму.</p>
-    <p><small>Покажите этот QR-код на стойке регистрации</small></p>
+<div style="background: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+    <h4 style="margin: 0 0 10px 0; color: #155724;">🎯 Что делать дальше:</h4>
+    <ul style="margin: 0; padding-left: 20px;">
+        <li>Сохраните это письмо</li>
+        <li>Приходите 4 января на конференцию!</li>
+        <li>Покажите QR-код на стойке регистрации</li>
+    </ul>
 </div>
 
-<p><strong>Не забудь показать QR-код на стойке регистрации на самой конференции 4 января!</strong></p>
-
-<p>С уважением,<br>Команда конференции ТИНС</p>
+<div class="footer">
+    <p style="margin: 0;">С уважением,<br><strong>Команда конференции ТИНС</strong></p>
+</div>
 </body>
 </html>

@@ -27,16 +27,23 @@ const RegistrationPage: React.FC = () => {
 
   const calculateAge = (birthDate: string): number => {
     if (!birthDate) return 0;
-    const [day, month, year] = birthDate.split('/');
-    const birth = new Date(Number(year), Number(month) - 1, Number(day));
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
+    
+    try {
+        const [day, month, year] = birthDate.split('/');
+        const birth = new Date(Number(year), Number(month) - 1, Number(day));
+        const today = new Date();
+        
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    } catch (error) {
+        return 0;
     }
-    return age;
-  };
+};
 
   const age = calculateAge(birthDate);
   const isUnder18 = age < 18;
@@ -48,7 +55,7 @@ const RegistrationPage: React.FC = () => {
 
     try {
       console.log('Registration data:', values);
-      const response = await axios.post<RegistrationResponse>('/api/registrations', values);
+      const response = await axios.post<RegistrationResponse>('/registrations', values);
       console.log('Registration successful:', response.data);
       
       // Переходим на страницу оплаты с данными
@@ -324,7 +331,7 @@ const RegistrationPage: React.FC = () => {
               size="large"
               loading={loading}
               block
-              style={{ height: '50px', fontSize: '18px', fontWeight: 600 }}
+              style={{ minHeight: '44px', fontSize: '16px', fontWeight: 600 }}
             >
               {loading ? 'Регистрация...' : 'Зарегистрироваться'}
             </Button>

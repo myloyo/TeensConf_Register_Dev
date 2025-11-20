@@ -53,30 +53,35 @@ public class EmailService {
         }
     }
 
+
     public void sendPaymentSuccessNotification(Registration registration) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             helper.setFrom(fromEmail);
             helper.setTo(registration.getEmail());
-            helper.setSubject("Оплата регистрации прошла успешно!");
+            helper.setSubject("Подтверждение регистрации на конференцию ТИНС");
+
+            byte[] qrCodeBytes = qrCodeService.generateRegistrationQrCodeBytes(registration);
+
+            Context context = new Context();
+            context.setVariable("registration", registration);
+            context.setVariable("fullName", registration.getFullName());
 
             String htmlContent = buildPaymentSuccessEmail(registration);
             helper.setText(htmlContent, true);
 
-            // Генерируем QR код и добавляем как вложение
-            byte[] qrCodeBytes = qrCodeService.generateRegistrationQrCodeBytes(registration);
             if (qrCodeBytes != null) {
-                helper.addAttachment("qr_code_" + registration.getId() + ".png", 
-                    new ByteArrayResource(qrCodeBytes), "image/png");
+                ByteArrayResource qrCodeResource = new ByteArrayResource(qrCodeBytes);
+                helper.addInline("qrCode", qrCodeResource, "image/png");
             }
 
-            mailSender.send(message);
-            log.info("Уведомление об оплате отправлено на: {}", registration.getEmail());
+            mailSender.send(mimeMessage);
+            log.info("Payment success email sent to: {}", registration.getEmail());
 
         } catch (Exception e) {
-            log.error("Ошибка отправки уведомления об оплате: {}", registration.getEmail(), e);
+            log.error("Failed to send payment success email to: {}", registration.getEmail(), e);
         }
     }
 

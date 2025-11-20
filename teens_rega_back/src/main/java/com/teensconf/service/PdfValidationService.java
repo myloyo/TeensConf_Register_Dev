@@ -9,29 +9,25 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 @Slf4j
 @Service
 public class PdfValidationService {
 
-    private static final String[] REQUIRED_PHRASES = {
+    private static final String[] ALL_KEY_PHRASES = {
             "ЦЕРКОВЬ СЛОВО ЖИЗНИ_SBP",
-            "МЕСТНАЯ РЕЛИГИОЗНАЯ ОРГАНИЗАЦИЯ ХРИСТИАН ВЕРЫ ЕВАНГЕЛЬСКОЙ (ПЯТИДЕСЯТНИКОВ) ЦЕРКОВЬ \"СЛОВО ЖИЗНИ\" САРАТОВ",
+            "МЕСТНАЯ РЕЛИГИОЗНАЯ ОРГАНИЗНАЦИЯ ХРИСТИАН ВЕРЫ ЕВАНГЕЛЬСКОЙ (ПЯТИДЕСЯТНИКОВ) ЦЕРКОВЬ \"СЛОВО ЖИЗНИ\" САРАТОВ",
             "6453041398",
-            "ПАО СБЕРБАНК"
-    };
-
-    private static final String[] BANK_PHRASES = {
             "ПАО СБЕРБАНК",
-            "СБЕРБАНК"
+            "СБЕРБАНК",
+            "Сбербанк",
+            "ЦЕРКОВЬ СЛОВО ЖИЗНИ",
+            "СЛОВО ЖИЗНИ САРАТОВ"
     };
 
-    private static final String[] RECIPIENT_PHRASES = {
-            "ЦЕРКОВЬ СЛОВО ЖИЗНИ_SBP",
-            "МЕСТНАЯ РЕЛИГИОЗНАЯ ОРГАНИЗАЦИЯ ХРИСТИАН ВЕРЫ ЕВАНГЕЛЬСКОЙ (ПЯТИДЕСЯТНИКОВ) ЦЕРКОВЬ \"СЛОВО ЖИЗНИ\" САРАТОВ"
-    };
-
-    private static final String REQUIRED_INN = "6453041398";
+    private static final String REFERENCE_SUFFIX = "0011630701";
 
     public ValidationResult validatePdf(byte[] pdfBytes) {
         try (InputStream inputStream = new ByteArrayInputStream(pdfBytes);
@@ -44,40 +40,35 @@ public class PdfValidationService {
                 return ValidationResult.error("PDF файл пустой или не содержит текста");
             }
 
+            log.debug("Содержимое PDF:\n{}", text);
             String normalizedText = normalizeText(text);
-            List<String> errors = new ArrayList<>();
-
-            boolean hasRecipient = checkRecipient(normalizedText);
-            if (!hasRecipient) {
-                errors.add("Не найдены реквизиты получателя: ЦЕРКОВЬ_СЛОВО_ЖИЗНИ_SBP или Церковь 'Слово Жизни' Саратов");
-            }
-
-            boolean hasInn = checkInn(normalizedText);
-            if (!hasInn) {
-                errors.add("Не найден ИНН получателя: 6453041398");
-            }
-
-            boolean hasBank = checkBank(normalizedText);
-            if (!hasBank) {
-                errors.add("Не найден банк получателя: ПАО СБЕРБАНК");
-            }
+            log.debug("Нормализованный текст:\n{}", normalizedText);
 
             AmountValidationResult amountResult = checkAmount(normalizedText);
             if (!amountResult.isValid()) {
-                errors.add(amountResult.getErrorMessage());
+                return ValidationResult.error(amountResult.getErrorMessage());
             }
 
-            if (!errors.isEmpty()) {
-                String errorMessage = String.join("; ", errors);
-                log.warn("PDF валидация не пройдена: {}", errorMessage);
-                return ValidationResult.error(errorMessage);
+            boolean hasAnyKeyPhrase = checkAnyKeyPhrase(normalizedText);
+            if (!hasAnyKeyPhrase) {
+                log.info("PDF чек не содержит ключевых фраз, но сумма корректна - принимаем");
+            } else {
+                log.info("PDF чек содержит ключевые фразы и корректную сумму");
             }
 
-            log.info("PDF чек прошел валидацию");
+            String reference = findReference(normalizedText);
+            if (reference != null) {
+                if (!reference.endsWith(REFERENCE_SUFFIX)) {
+                    log.warn("Найден референс с неправильным окончанием: {}", reference);
+                } else {
+                    log.info("Найден корректный референс: {}", reference);
+                }
+            }
+
             return ValidationResult.success();
 
         } catch (Exception e) {
-            log.error("Ошибка при чтении PDF файла: {}", e.getMessage());
+            log.error("Ошибка при чтении PDF файла: {}", e.getMessage(), e);
             return ValidationResult.error("Ошибка при чтении PDF файла: " + e.getMessage());
         }
     }
@@ -91,28 +82,10 @@ public class PdfValidationService {
                 .trim();
     }
 
-    private boolean checkRecipient(String text) {
-        for (String phrase : RECIPIENT_PHRASES) {
+    private boolean checkAnyKeyPhrase(String text) {
+        for (String phrase : ALL_KEY_PHRASES) {
             if (text.contains(phrase.toUpperCase())) {
-                log.debug("Найден получатель: {}", phrase);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean checkInn(String text) {
-        boolean hasInn = text.contains(REQUIRED_INN);
-        if (hasInn) {
-            log.debug("Найден ИНН: {}", REQUIRED_INN);
-        }
-        return hasInn;
-    }
-
-    private boolean checkBank(String text) {
-        for (String phrase : BANK_PHRASES) {
-            if (text.contains(phrase.toUpperCase())) {
-                log.debug("Найден банк: {}", phrase);
+                log.debug("Найдена ключевая фраза: {}", phrase);
                 return true;
             }
         }
@@ -122,18 +95,24 @@ public class PdfValidationService {
     private AmountValidationResult checkAmount(String text) {
         String[] amountPatterns = {
                 "500.00", "500,00", "500 РУБ", "500Р", "500 RUR", "500.00",
-                "500.00 РУБ", "500,00 РУБ", "500.00Р", "500,00Р", "500"
+                "500.00 РУБ", "500,00 РУБ", "500.00Р", "500,00Р", "500",
+                "500.0", "500,0", "500.00RUB", "500,00RUB", "500RUB",
+                "500,00 Р", "500.00 Р", "500 Р", "500РУБ", "500.00РУБ", "500 RUB", "500 ₽"
         };
 
         for (String pattern : amountPatterns) {
             if (text.contains(pattern)) {
-                log.debug("Найдена корректная сумма: {}", pattern);
+                log.debug("Найдена корректная сумма по паттерну: {}", pattern);
                 return AmountValidationResult.valid();
             }
         }
 
+        // Более гибкая проверка через регулярные выражения
         if (text.matches(".*[^0-9]500[^0-9].*") ||
-                text.matches(".*500[.,]00.*")) {
+                text.matches(".*500[.,]00.*") ||
+                text.matches(".*500[.,]0[^0-9].*") ||
+                text.matches(".*\\b500\\b.*")) {
+            log.debug("Найдена корректная сумма по регулярному выражению");
             return AmountValidationResult.valid();
         }
 
@@ -145,20 +124,66 @@ public class PdfValidationService {
 
     private List<String> findAmountsInText(String text) {
         List<String> amounts = new ArrayList<>();
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\b(\\d{3,4}([.,]\\d{2})?)\\b");
-        java.util.regex.Matcher matcher = pattern.matcher(text);
 
-        while (matcher.find()) {
-            String amount = matcher.group(1);
-            try {
-                double value = Double.parseDouble(amount.replace(",", "."));
-                if (value >= 100 && value <= 1000) {
-                    amounts.add(amount);
+        // Исправленные регулярные выражения для поиска сумм
+        Pattern[] amountPatterns = {
+                Pattern.compile("\\b(\\d{1,4}[.,]\\d{2})\\s*(?:РУБ|RUB|Р|RUR|₽)?"),
+                Pattern.compile("(\\d{1,4})\\s*(?:РУБ|RUB|Р|RUR|₽)"),
+                Pattern.compile("(\\d{1,4}[.,]\\d{0,2})")
+        };
+
+        for (Pattern pattern : amountPatterns) {
+            Matcher matcher = pattern.matcher(text);
+            while (matcher.find()) {
+                try {
+                    String amountStr = matcher.group(1).replace(",", ".");
+                    double value = Double.parseDouble(amountStr);
+                    if (value >= 100 && value <= 1000) {
+                        amounts.add(amountStr + " руб");
+                    }
+                } catch (NumberFormatException | IllegalStateException e) {
+                    // Пропускаем некорректные числа
                 }
-            } catch (NumberFormatException e) {
             }
         }
         return amounts;
+    }
+
+    private String findReference(String text) {
+        Pattern[] referencePatterns = {
+                // Простой поиск чисел длиной 10-32 символа
+                Pattern.compile("\\b\\d{10,32}\\b"),
+                // Поиск с ключевыми словами - исправленные группы
+                Pattern.compile("(?:РЕФЕРЕНС|ИДЕНТИФИКАТОР|НОМЕР[\\s]*ОПЕРАЦИИ|СБП)[\\s:]*([A-Z0-9]{10,32})", Pattern.CASE_INSENSITIVE),
+                // Поиск любых длинных последовательностей букв и цифр
+                Pattern.compile("\\b[A-Z0-9]{10,32}\\b")
+        };
+
+        for (Pattern pattern : referencePatterns) {
+            Matcher matcher = pattern.matcher(text);
+            while (matcher.find()) {
+                String reference = null;
+                try {
+                    // Пытаемся получить группу 1 (для паттернов с группами)
+                    if (matcher.groupCount() >= 1) {
+                        reference = matcher.group(1);
+                    }
+                    // Если группа 1 не найдена или null, берем всю найденную строку
+                    if (reference == null) {
+                        reference = matcher.group(0);
+                    }
+
+                    if (reference != null && reference.length() >= 10) {
+                        log.debug("Найден потенциальный референс: {}", reference);
+                        return reference;
+                    }
+                } catch (IllegalStateException e) {
+                    log.warn("Ошибка при извлечении группы из регулярного выражения: {}", e.getMessage());
+                    // Продолжаем поиск с другими паттернами
+                }
+            }
+        }
+        return null;
     }
 
     public static class ValidationResult {

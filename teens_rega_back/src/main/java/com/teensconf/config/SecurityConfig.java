@@ -20,30 +20,18 @@ public class SecurityConfig {
         http
                 .cors().and()
                 .csrf().disable()
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .antMatchers("/api/registrations/**").permitAll()
-                        .antMatchers("/api/payments/**").permitAll()
-                        .antMatchers("/api/admin/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .httpBasic();
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers("/api/registrations").permitAll()
+                .antMatchers("/api/registrations/**").permitAll()
+                .antMatchers("/api/payments/**").permitAll()
+                .anyRequest().permitAll()
+                .and()
+                .httpBasic().disable();
 
         return http.build();
     }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails admin = User.withDefaultPasswordEncoder()
-                .username("admin")
-                .password("teens2026admin")
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 }
+
+

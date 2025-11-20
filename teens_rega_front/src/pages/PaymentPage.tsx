@@ -48,10 +48,9 @@ const PaymentPage: React.FC = () => {
 
   const sbpQrUrl = "https://qr.nspk.ru/AS1A003SCQ2PA3UQ9D4P7BDADQRQ9V7J?type=01&bank=100000000111&crc=29ED";
 
-  // Кастомная функция загрузки, которая ничего не делает
+
   const dummyRequest = async (options: any) => {
     const { onSuccess } = options;
-    // Имитируем успешную загрузку, но ничего не отправляем
     setTimeout(() => {
       onSuccess("ok");
     }, 0);
@@ -63,8 +62,7 @@ const PaymentPage: React.FC = () => {
       return;
     }
 
-    // Обновляем fileList для отображения в интерфейсе
-    setFileList(info.fileList.slice(-1)); // Берем только последний файл
+    setFileList(info.fileList.slice(-1));
     
     setError('');
     setDetailedErrors([]);
@@ -82,8 +80,6 @@ const PaymentPage: React.FC = () => {
       message.error('Файл должен быть меньше 10MB!');
       return false;
     }
-    
-    // Возвращаем false, чтобы предотвратить автоматическую загрузку
     return false;
   };
 
@@ -117,7 +113,7 @@ const PaymentPage: React.FC = () => {
       console.log('Completing registration for:', registrationData.registrationId);
       
       const response = await axios.post<PaymentCompletionResponse>(
-        `/api/registrations/${registrationData.registrationId}/complete`,
+        `/registrations/${registrationData.registrationId}/complete`,
         formData,
         {
           headers: {
@@ -227,7 +223,7 @@ const PaymentPage: React.FC = () => {
                   <li>Проверьте, что сумма составляет ровно 500 рублей</li>
                   <li>Убедитесь, что в чеке указан ИНН 6453041398</li>
                   <li>Проверьте, что получатель - Церковь "Слово Жизни" Саратов</li>
-                  <li>Если проблемы остаются, обратитесь к служителям: tg @plashbik или @myloyorrr_still</li>
+                  <li>Если проблемы остаются, обратитесь к служителям в telegram: @plashbik или @myloyorrr_still</li>
                 </ul>
               </div>
             </div>
@@ -245,7 +241,7 @@ const PaymentPage: React.FC = () => {
 
       <Card className="payment-container">
         <Steps current={currentStep} style={{ marginBottom: 40 }}>
-          <Step title="Оплата" description="Внесите добровольное пожертвование" />
+          <Step title="Перевод" description="Внесите добровольное пожертвование" />
           <Step 
             title="Подтверждение" 
             description="Загрузите чек и завершите регистрацию" 
@@ -272,7 +268,7 @@ const PaymentPage: React.FC = () => {
         )}
 
         <div className="qr-section">
-          <Title level={4}>Оплата через СБП</Title>
+          <Title level={4}>Перевод через СБП</Title>
           <a href={sbpQrUrl} target="_blank" rel="noopener noreferrer">
             <img 
               src={`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(sbpQrUrl)}`}
@@ -282,7 +278,7 @@ const PaymentPage: React.FC = () => {
             />
           </a>
           <Paragraph>
-            Отсканируйте QR-код для оплаты через СБП или{' '}
+            Отсканируйте QR-код для перевода через СБП или{' '}
             <a href={sbpQrUrl} target="_blank" rel="noopener noreferrer">
               нажмите здесь для открытия в приложении банка
             </a>
@@ -302,7 +298,7 @@ const PaymentPage: React.FC = () => {
             fileList={fileList}
             onChange={handleUpload}
             beforeUpload={beforeUpload}
-            customRequest={dummyRequest} // Важно: кастомный запрос, который ничего не делает
+            customRequest={dummyRequest}
             maxCount={1}
             listType="text"
             onRemove={removeFile}
@@ -364,7 +360,7 @@ const PaymentPage: React.FC = () => {
             disabled={paymentStatus === 'success' || fileList.length === 0}
             onClick={completeRegistration}
             icon={paymentStatus === 'success' ? <CheckCircleOutlined /> : undefined}
-            style={{ height: '50px', fontSize: '18px', fontWeight: 600 }}
+            style={{ minHeight: '44px', fontSize: '16px', fontWeight: 600 }}
             block
           >
             {paymentStatus === 'success' ? 'Регистрация завершена!' : 
