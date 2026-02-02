@@ -4,6 +4,7 @@ import com.teensconf.config.TestSecurityConfig;
 import com.teensconf.dto.PaymentCompletionRequest;
 import com.teensconf.entity.PaymentReceipt;
 import com.teensconf.entity.Registration;
+import com.teensconf.kafka.EventProducer;
 import com.teensconf.repository.PaymentReceiptRepository;
 import com.teensconf.repository.RegistrationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,9 @@ class PaymentServiceTest {
     @Mock
     private PdfValidationService pdfValidationService;
 
+    @Mock
+    private EventProducer eventProducer;
+
     @InjectMocks
     private PaymentService paymentService;
 
@@ -58,14 +62,12 @@ class PaymentServiceTest {
         registration.setFirstName("John");
         registration.setLastName("Doe");
 
-        // Используем временную директорию для тестов
         paymentService.uploadDir = tempDir.toString();
-        paymentService.init(); // Создаем директорию
+        paymentService.init();
     }
 
     @Test
     void processPaymentCompletion_WithValidPdfFile_CompletesRegistration() throws IOException {
-        // Given
         PaymentCompletionRequest request = new PaymentCompletionRequest();
         MockMultipartFile pdfFile = new MockMultipartFile(
                 "receiptFile",
@@ -77,34 +79,26 @@ class PaymentServiceTest {
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
         when(paymentReceiptRepository.save(any(PaymentReceipt.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        // Используем новый ValidationResult вместо boolean
         PdfValidationService.ValidationResult validationResult =
                 PdfValidationService.ValidationResult.success();
         when(pdfValidationService.validatePdf(any())).thenReturn(validationResult);
-
-        // When
         PaymentReceipt result = paymentService.processPaymentCompletion(REGISTRATION_ID, request);
 
-        // Then
         assertNotNull(result);
         assertTrue(result.getVerified());
         assertTrue(result.getPaid());
         assertEquals("receipt.pdf", result.getFileName());
         assertNotNull(result.getFilePath());
         assertTrue(result.getFilePath().contains(".pdf"));
-        assertNotNull(result.getFileSize());
         assertNotNull(registration.getRegistrationCompletedAt());
         verify(emailService, times(1)).sendPaymentSuccessNotification(registration);
         verify(pdfValidationService, times(1)).validatePdf(any());
 
-        // Проверяем, что файл действительно сохранен
         assertTrue(Files.exists(Path.of(result.getFilePath())));
     }
 
     @Test
     void processPaymentCompletion_WithInvalidPdfExtension_ThrowsException() {
-        // Given
         PaymentCompletionRequest request = new PaymentCompletionRequest();
         MockMultipartFile invalidFile = new MockMultipartFile(
                 "receiptFile",
@@ -115,9 +109,7 @@ class PaymentServiceTest {
         request.setReceiptFile(invalidFile);
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        com.teensconf.exception.FileFormatException exception = assertThrows(com.teensconf.exception.FileFormatException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
 
@@ -129,7 +121,6 @@ class PaymentServiceTest {
 
     @Test
     void processPaymentCompletion_WithPdfFileButInvalidContent_ThrowsException() {
-        // Given
         PaymentCompletionRequest request = new PaymentCompletionRequest();
         MockMultipartFile pdfFile = new MockMultipartFile(
                 "receiptFile",
@@ -140,14 +131,10 @@ class PaymentServiceTest {
         request.setReceiptFile(pdfFile);
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
-
-        // Используем новый ValidationResult с ошибкой
         PdfValidationService.ValidationResult validationResult =
                 PdfValidationService.ValidationResult.error("Чек не прошел валидацию. Не найдены реквизиты получателя");
         when(pdfValidationService.validatePdf(any())).thenReturn(validationResult);
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        com.teensconf.exception.FileFormatException exception = assertThrows(com.teensconf.exception.FileFormatException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
 
@@ -159,7 +146,6 @@ class PaymentServiceTest {
 
     @Test
     void processPaymentCompletion_WithPdfFileValidationException_ThrowsException() {
-        // Given
         PaymentCompletionRequest request = new PaymentCompletionRequest();
         MockMultipartFile pdfFile = new MockMultipartFile(
                 "receiptFile",
@@ -171,8 +157,6 @@ class PaymentServiceTest {
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
         when(pdfValidationService.validatePdf(any())).thenThrow(new RuntimeException("Validation error"));
-
-        // When & Then
         assertThrows(RuntimeException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
@@ -183,13 +167,10 @@ class PaymentServiceTest {
 
     @Test
     void processPaymentCompletion_NoPaymentData_ThrowsException() {
-        // Given
         PaymentCompletionRequest request = new PaymentCompletionRequest();
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        com.teensconf.exception.ValidationException exception = assertThrows(com.teensconf.exception.ValidationException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
 
@@ -200,7 +181,6 @@ class PaymentServiceTest {
 
     @Test
     void processPaymentCompletion_WithNullFileName_ThrowsException() {
-        // Given
         PaymentCompletionRequest request = new PaymentCompletionRequest();
         MockMultipartFile fileWithoutName = new MockMultipartFile(
                 "receiptFile",
@@ -212,27 +192,24 @@ class PaymentServiceTest {
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
 
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(com.teensconf.exception.FileFormatException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
     }
 
     @Test
     void init_CreatesUploadDirectory() {
-        // Given
         PaymentService service = new PaymentService(
                 registrationRepository,
                 paymentReceiptRepository,
+                pdfValidationService,
                 emailService,
-                pdfValidationService
+                eventProducer
         );
         service.uploadDir = tempDir.resolve("new-uploads").toString();
 
-        // When
         service.init();
 
-        // Then
         assertTrue(Files.exists(Path.of(service.uploadDir)));
     }
 
@@ -250,13 +227,11 @@ class PaymentServiceTest {
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
 
-        // Создаем ValidationResult с детализированной ошибкой суммы
         PdfValidationService.ValidationResult validationResult =
                 PdfValidationService.ValidationResult.error("Сумма пожертвования должна быть 500 рублей. Найдены суммы: 600, 450");
         when(pdfValidationService.validatePdf(any())).thenReturn(validationResult);
 
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        com.teensconf.exception.FileFormatException exception = assertThrows(com.teensconf.exception.FileFormatException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
 
@@ -281,13 +256,11 @@ class PaymentServiceTest {
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
 
-        // Создаем ValidationResult с ошибкой отсутствия получателя
         PdfValidationService.ValidationResult validationResult =
                 PdfValidationService.ValidationResult.error("Не найдены реквизиты получателя: ЦЕРКОВЬ_СЛОВО_ЖИЗНИ_SBP или Церковь \"Слово Жизни\" Саратов");
         when(pdfValidationService.validatePdf(any())).thenReturn(validationResult);
 
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        com.teensconf.exception.FileFormatException exception = assertThrows(com.teensconf.exception.FileFormatException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
 
@@ -300,7 +273,6 @@ class PaymentServiceTest {
 
     @Test
     void processPaymentCompletion_WithPdfFileMultipleErrors_ThrowsDetailedException() {
-        // Given
         PaymentCompletionRequest request = new PaymentCompletionRequest();
         MockMultipartFile pdfFile = new MockMultipartFile(
                 "receiptFile",
@@ -312,13 +284,11 @@ class PaymentServiceTest {
 
         when(registrationRepository.findById(REGISTRATION_ID)).thenReturn(Optional.of(registration));
 
-        // Создаем ValidationResult с несколькими ошибками
         PdfValidationService.ValidationResult validationResult =
                 PdfValidationService.ValidationResult.error("Не найдены реквизиты получателя: ЦЕРКОВЬ_СЛОВО_ЖИЗНИ_SBP или Церковь \"Слово Жизни\" Саратов; Не найден ИНН получателя: 6453041398; Сумма пожертвования должна быть 500 рублей. Найдены суммы: 300");
         when(pdfValidationService.validatePdf(any())).thenReturn(validationResult);
 
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        com.teensconf.exception.FileFormatException exception = assertThrows(com.teensconf.exception.FileFormatException.class, () -> {
             paymentService.processPaymentCompletion(REGISTRATION_ID, request);
         });
 

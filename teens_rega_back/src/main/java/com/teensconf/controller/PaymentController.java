@@ -2,20 +2,13 @@ package com.teensconf.controller;
 
 import com.teensconf.dto.PaymentCompletionRequest;
 import com.teensconf.entity.PaymentReceipt;
-import com.teensconf.entity.Registration;
 import com.teensconf.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +23,7 @@ public class PaymentController {
     @PostMapping(value = "/{registrationId}/complete", consumes = "multipart/form-data")
     public ResponseEntity<?> completeRegistration(
             @PathVariable Long registrationId,
-            @RequestParam(value = "receiptFile", required = false) MultipartFile receiptFile) {  // ← Изменил параметр
+            @RequestParam(value = "receiptFile", required = false) MultipartFile receiptFile) {
 
         log.info("Received payment completion request for registrationId: {}", registrationId);
         log.info("File received: {}", receiptFile != null ? receiptFile.getOriginalFilename() : "null");

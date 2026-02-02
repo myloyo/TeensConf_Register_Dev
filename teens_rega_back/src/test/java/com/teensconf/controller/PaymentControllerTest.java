@@ -1,6 +1,5 @@
 package com.teensconf.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teensconf.config.TestSecurityConfig;
 import com.teensconf.dto.PaymentCompletionRequest;
 import com.teensconf.entity.PaymentReceipt;
@@ -78,7 +77,7 @@ class PaymentControllerTest {
         Long registrationId = 1L;
         PaymentReceipt mockReceipt = new PaymentReceipt();
         mockReceipt.setId(1L);
-        mockReceipt.setVerified(false); // не верифицирован
+        mockReceipt.setVerified(false);
 
         when(paymentService.processPaymentCompletion(eq(registrationId), any(PaymentCompletionRequest.class)))
                 .thenReturn(mockReceipt);

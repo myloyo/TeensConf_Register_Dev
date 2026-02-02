@@ -1,5 +1,6 @@
 package com.teensconf.service;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -186,6 +187,7 @@ public class PdfValidationService {
         return null;
     }
 
+    @Getter
     public static class ValidationResult {
         private final boolean valid;
         private final String errorMessage;
@@ -212,6 +214,7 @@ public class PdfValidationService {
         }
     }
 
+    @Getter
     public static class AmountValidationResult {
         private final boolean valid;
         private final String errorMessage;

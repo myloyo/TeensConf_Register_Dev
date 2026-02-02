@@ -58,6 +58,9 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.apache.pdfbox:pdfbox:2.0.29")
 
+    // Kafka
+    implementation("org.springframework.kafka:spring-kafka")
+
 }
 
 tasks.withType<Test> {

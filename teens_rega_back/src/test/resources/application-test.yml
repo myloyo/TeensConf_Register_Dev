@@ -26,8 +26,3 @@ app:
     allowed-origins: "http://localhost:3000"
   email:
     from: "test@example.com"
-
-yandex:
-  sheets:
-    access-token: "test-token"
-    file-name: "/test-file.xlsx"

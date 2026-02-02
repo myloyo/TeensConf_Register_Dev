@@ -25,9 +25,6 @@ class RegistrationServiceTest {
     private RegistrationRepository registrationRepository;
 
     @Mock
-    private YandexSheetsService yandexSheetsService;
-
-    @Mock
     private EmailService emailService;
 
     @InjectMocks
@@ -35,21 +32,16 @@ class RegistrationServiceTest {
 
     @Test
     void createRegistration_ValidRequest_ReturnsRegistration() {
-        // Given
         RegistrationRequest request = createValidRegistrationRequest();
 
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> {
             Registration reg = invocation.getArgument(0);
             reg.setId(1L);
-            // Эмулируем вызов @PrePersist
             reg.setRegistrationCreatedAt(LocalDateTime.now());
             return reg;
         });
-
-        // When
         Registration result = registrationService.createRegistration(request);
 
-        // Then
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertNull(result.getRegistrationCompletedAt());
@@ -57,12 +49,10 @@ class RegistrationServiceTest {
 
         verify(registrationRepository, times(1)).save(any(Registration.class));
         verify(emailService, times(1)).sendRegistrationConfirmation(any(Registration.class));
-        verify(yandexSheetsService, times(1)).uploadRegistrationsToDisk();
     }
 
     @Test
     void createRegistration_EmailFails_StillSavesRegistration() {
-        // Given
         RegistrationRequest request = createValidRegistrationRequest();
 
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> {
@@ -72,20 +62,15 @@ class RegistrationServiceTest {
             return reg;
         });
         doThrow(new RuntimeException("Email error")).when(emailService).sendRegistrationConfirmation(any());
-
-        // When
         Registration result = registrationService.createRegistration(request);
 
-        // Then
         assertNotNull(result);
         assertEquals(1L, result.getId());
         verify(registrationRepository, times(1)).save(any(Registration.class));
-        verify(yandexSheetsService, times(1)).uploadRegistrationsToDisk();
     }
 
     @Test
     void createRegistration_SetsAllFieldsCorrectly() {
-        // Given
         RegistrationRequest request = createValidRegistrationRequest();
 
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> {
@@ -94,11 +79,8 @@ class RegistrationServiceTest {
             reg.setRegistrationCreatedAt(LocalDateTime.now());
             return reg;
         });
-
-        // When
         Registration result = registrationService.createRegistration(request);
 
-        // Then
         assertNotNull(result);
         assertEquals("Иван", result.getFirstName());
         assertEquals("Иванов", result.getLastName());
