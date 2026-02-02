@@ -48,7 +48,6 @@ public class Registration {
     @Column(name = "parent_phone")
     private String parentPhone;
 
-    // Согласия
     @Column(name = "consent_under_14")
     private Boolean consentUnder14 = false;
 

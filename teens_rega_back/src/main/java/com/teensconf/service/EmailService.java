@@ -4,6 +4,7 @@ import com.teensconf.entity.Registration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,9 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private QrCodeService qrCodeService;
 
     @Value("${app.email.from}")
     private String fromEmail;
@@ -48,23 +52,35 @@ public class EmailService {
         }
     }
 
+
     public void sendPaymentSuccessNotification(Registration registration) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             helper.setFrom(fromEmail);
             helper.setTo(registration.getEmail());
-            helper.setSubject("Оплата регистрации прошла успешно!");
+            helper.setSubject("Подтверждение регистрации на конференцию ТИНС");
+
+            byte[] qrCodeBytes = qrCodeService.generateRegistrationQrCodeBytes(registration);
+
+            Context context = new Context();
+            context.setVariable("registration", registration);
+            context.setVariable("fullName", registration.getFullName());
 
             String htmlContent = buildPaymentSuccessEmail(registration);
             helper.setText(htmlContent, true);
 
-            mailSender.send(message);
-            log.info("Уведомление об оплате отправлено на: {}", registration.getEmail());
+            if (qrCodeBytes != null) {
+                ByteArrayResource qrCodeResource = new ByteArrayResource(qrCodeBytes);
+                helper.addInline("qrCode", qrCodeResource, "image/png");
+            }
+
+            mailSender.send(mimeMessage);
+            log.info("Payment success email sent to: {}", registration.getEmail());
 
         } catch (Exception e) {
-            log.error("Ошибка отправки уведомления об оплате: {}", registration.getEmail(), e);
+            log.error("Failed to send payment success email to: {}", registration.getEmail(), e);
         }
     }
 

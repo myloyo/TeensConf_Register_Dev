@@ -3,7 +3,6 @@ package com.teensconf.dto;
 import com.teensconf.validation.ValidBirthDate;
 import lombok.Data;
 import javax.validation.constraints.*;
-import java.time.LocalDate;
 
 @Data
 public class RegistrationRequest {
@@ -51,55 +50,4 @@ public class RegistrationRequest {
     private Boolean consentUnder14 = false;
     private Boolean consentDonation = false;
     private Boolean consentPersonalData = false;
-
-    @AssertTrue(message = "Необходимо согласие для несовершеннолетних")
-    public boolean isConsentUnder14Valid() {
-        if (isUnder18()) {
-            return consentUnder14 != null && consentUnder14;
-        }
-        return true;
-    }
-
-    @AssertTrue(message = "Для несовершеннолетних необходимо указать ФИО родителя")
-    public boolean isParentFullNameValid() {
-        if (isUnder18()) {
-            return parentFullName != null && !parentFullName.trim().isEmpty();
-        }
-        return true;
-    }
-
-    @AssertTrue(message = "Для несовершеннолетних необходимо указать телефон родителя")
-    public boolean isParentPhoneValid() {
-        if (isUnder18()) {
-            return parentPhone != null && parentPhone.matches("^\\+7\\d{10}$");
-        }
-        return true;
-    }
-
-    public boolean isUnder18() {
-        if (birthDate == null || !birthDate.matches("^\\d{2}/\\d{2}/\\d{4}$")) {
-            return false;
-        }
-        try {
-            String[] parts = birthDate.split("/");
-            int day = Integer.parseInt(parts[0]);
-            int month = Integer.parseInt(parts[1]);
-            int year = Integer.parseInt(parts[2]);
-
-            LocalDate birthDate = LocalDate.of(year, month, day);
-            return birthDate.plusYears(18).isAfter(LocalDate.now());
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    @AssertTrue(message = "Необходимо согласие на пожертвование")
-    public boolean isConsentDonationValid() {
-        return consentDonation != null && consentDonation;
-    }
-
-    @AssertTrue(message = "Необходимо согласие на обработку персональных данных")
-    public boolean isConsentPersonalDataValid() {
-        return consentPersonalData != null && consentPersonalData;
-    }
 }

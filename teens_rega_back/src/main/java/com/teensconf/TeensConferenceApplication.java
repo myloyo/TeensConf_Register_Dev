@@ -1,6 +1,7 @@
 package com.teensconf;
 
 import com.teensconf.service.PaymentService;
+import com.teensconf.service.RegistrationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,7 +23,7 @@ public class TeensConferenceApplication {
 
     @Bean
     @Profile("!test")
-    public CommandLineRunner initPaymentService(PaymentService paymentService) {
+    public CommandLineRunner initPaymentService(PaymentService paymentService, RegistrationService registrationService) {
         return args -> {
             paymentService.init();
             log.info("Payment service initialized");

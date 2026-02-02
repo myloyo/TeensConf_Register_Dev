@@ -3,14 +3,13 @@ package com.teensconf.service;
 import com.teensconf.dto.RegistrationRequest;
 import com.teensconf.entity.Registration;
 import com.teensconf.repository.RegistrationRepository;
+import com.teensconf.dto.events.RegistrationCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -19,11 +18,8 @@ import java.time.LocalDateTime;
 public class RegistrationService {
 
     private final RegistrationRepository registrationRepository;
-    private final YandexSheetsService yandexSheetsService;
     private final EmailService emailService;
-
-    @Value("${app.payment.amount}")
-    private Double paymentAmount;
+    private final com.teensconf.kafka.EventProducer eventProducer;
 
     public Registration createRegistration(@Valid RegistrationRequest request) {
         Registration registration = new Registration();
@@ -53,7 +49,14 @@ public class RegistrationService {
             log.error("Ошибка отправки email, но регистрация сохранена: {}", e.getMessage());
         }
 
-        yandexSheetsService.uploadRegistrationsToDisk();
+        try {
+            RegistrationCreatedEvent evt = new RegistrationCreatedEvent(
+                    savedRegistration.getId(), savedRegistration.getFirstName(), savedRegistration.getLastName(), savedRegistration.getEmail()
+            );
+            eventProducer.publish("registrations.events", savedRegistration.getId().toString(), evt);
+        } catch (Exception e) {
+            log.warn("Не удалось опубликовать событие о регистрации: {}", e.getMessage());
+        }
 
         return savedRegistration;
     }

@@ -1,0 +1,3 @@
+ALTER TABLE payment_receipts
+DROP
+COLUMN payment_reference;

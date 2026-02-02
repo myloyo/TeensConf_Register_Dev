@@ -16,14 +16,8 @@ public class PaymentReceipt {
     @JoinColumn(name = "registration_id", nullable = false, unique = true)
     private Registration registration;
 
-    @Column(name = "donation_amount")
-    private Double donationAmount = 500.0;
-
     @Column(name = "paid")
     private Boolean paid = false;
-
-    @Column(name = "payment_reference")
-    private String paymentReference;
 
     @Column(name = "file_name")
     private String fileName;
@@ -31,14 +25,17 @@ public class PaymentReceipt {
     @Column(name = "file_path")
     private String filePath;
 
-    @Column(name = "file_size")
-    private Long fileSize;
-
     @Column(name = "verified")
     private Boolean verified = false;
 
     @Column(name = "payment_created_at")
     private LocalDateTime paymentCreatedAt;
+
+    @Column(name = "yandex_disk_url")
+    private String yandexDiskUrl;
+
+    @Column(name = "yandex_disk_uploaded")
+    private Boolean yandexDiskUploaded = false;
 
     @PrePersist
     protected void onCreate() {
